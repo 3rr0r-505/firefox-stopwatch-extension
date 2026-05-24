@@ -1,0 +1,63 @@
+Stopwatch — Firefox Extension
+==============================
+
+A minimal, zero-bloat stopwatch extension for Firefox.
+Start, pause, lap, and reset. The timer keeps running in
+the background even when the popup is closed.
+
+No storage. No network requests. No tracking.
+No external dependencies. No build tools.
+
+
+Features
+--------
+  - Start / Pause / Resume
+  - Lap tracking with best and worst lap highlighting
+  - Delta time per lap
+  - Timer runs in background while popup is closed
+  - Resets cleanly on browser restart (intentional)
+  - Local fonts, zero external requests
+
+
+Files
+-----
+  manifest.json   Extension config
+  background.js   Keeps timer alive in background
+  popup.html      UI
+  popup.js        UI logic
+  icon-48.png     Toolbar icon (48x48)
+  icon-96.png     Toolbar icon (96x96)
+  fonts/          Locally bundled fonts (Share Tech Mono, Rajdhani)
+
+
+Install
+-------
+  This extension is unlisted and not publicly available
+  on the Firefox Add-ons marketplace.
+
+  To install from source:
+    1. Download or clone this repo
+    2. Go to about:debugging in Firefox
+    3. Click "This Firefox" -> "Load Temporary Add-on"
+    4. Select manifest.json from the extension folder
+
+  Note: Temporary installs are removed when Firefox closes.
+  For a permanent install, submit the zip of the extension
+  files to addons.mozilla.org/developers — Mozilla will sign
+  it and return a .xpi file you can install permanently via
+  about:addons -> gear icon -> Install Add-on From File.
+  Alternatively, set xpinstall.signatures.required to false
+  in about:config (not recommended for daily use).
+
+
+Tech
+----
+  Plain HTML, CSS, and JavaScript.
+  No frameworks. No bundler. No minifier.
+  Uses browser.runtime messaging between popup and background.
+  Timer state lives purely in memory — no storage API used.
+
+
+License
+-------
+  Mozilla Public License Version 2.0

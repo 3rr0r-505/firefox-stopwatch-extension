@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "Stopwatch",
+  "version": "1.0.0",
+  "description": "A clean stopwatch with lap tracking that keeps running in the background.",
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png"
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon-96.png",
+    "default_title": "Stopwatch"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "permissions": [],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "stopwatch@5pyd3r",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
+    }
+  }
+}

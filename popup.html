@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @font-face {
+    font-family: 'Share Tech Mono';
+    src: url('fonts/Share_Tech_Mono/ShareTechMono-Regular.ttf');
+  }
+  @font-face {
+    font-family: 'Rajdhani';
+    src: url('fonts/Rajdhani/Rajdhani-Light.ttf');
+    font-weight: 300;
+  }
+  @font-face {
+    font-family: 'Rajdhani';
+    src: url('fonts/Rajdhani/Rajdhani-Regular.ttf');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Rajdhani';
+    src: url('fonts/Rajdhani/Rajdhani-Medium.ttf');
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Rajdhani';
+    src: url('fonts/Rajdhani/Rajdhani-Bold.ttf');
+    font-weight: 700;
+  }
+
+  :root {
+    --bg:        #080c10;
+    --bg2:       #0d1219;
+    --accent:    #00ffe0;
+    --accent2:   #00a8ff;
+    --dim:       #1e2d3d;
+    --muted:     #4a6070;
+    --text:      #cdd9e5;
+    --faint:     #2a3d50;
+    --lap-best:  #00ff88;
+    --lap-worst: #ff4d6d;
+  }
+
+  body {
+    width: 300px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── grid scanline overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,224,0.015) 3px, rgba(0,255,224,0.015) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,255,224,0.015) 3px, rgba(0,255,224,0.015) 4px);
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ── header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--faint);
+  }
+  .header-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .header-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .header-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent), 0 0 18px rgba(0,255,224,0.4);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ── ring ── */
+  .ring-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 0 8px;
+    position: relative;
+  }
+  .ring-wrap svg { display: block; }
+
+  .ring-bg { fill: none; stroke: var(--faint); stroke-width: 3; }
+  .ring-track {
+    fill: none;
+    stroke: var(--dim);
+    stroke-width: 3;
+    stroke-dasharray: 6 4;
+  }
+  .ring-fill {
+    fill: none;
+    stroke: url(#arcGrad);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-dasharray: 679;
+    stroke-dashoffset: 679;
+    transition: stroke-dashoffset 0.08s linear;
+    filter: drop-shadow(0 0 4px rgba(0,255,224,0.7));
+  }
+
+  .time-block {
+    position: absolute;
+    text-align: center;
+  }
+  .time-main {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 38px;
+    letter-spacing: -1px;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(0,255,224,0.3);
+  }
+  .time-ms {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    margin-top: 4px;
+    letter-spacing: 2px;
+  }
+  .time-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ── buttons ── */
+  .btns {
+    display: flex;
+    gap: 8px;
+    padding: 4px 16px 16px;
+    justify-content: center;
+  }
+  .btn {
+    flex: 1;
+    padding: 9px 0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.12s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.12s;
+  }
+  .btn:hover::after { background: rgba(255,255,255,0.06); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-start {
+    background: var(--accent);
+    color: #080c10;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(0,255,224,0.3);
+  }
+  .btn-start:hover { box-shadow: 0 0 20px rgba(0,255,224,0.55); }
+  .btn-start.paused {
+    background: var(--accent2);
+    box-shadow: 0 0 12px rgba(0,168,255,0.3);
+  }
+
+  .btn-sec {
+    background: var(--dim);
+    color: var(--text);
+    border: 1px solid var(--faint);
+  }
+
+  /* ── divider ── */
+  .divider {
+    height: 1px;
+    margin: 0 16px 0;
+    background: linear-gradient(to right, transparent, var(--faint), transparent);
+  }
+
+  /* ── laps ── */
+  .laps-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px 4px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .laps-list {
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 0 16px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dim) transparent;
+  }
+  .laps-empty {
+    text-align: center;
+    padding: 16px 0 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+  .lap-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 80px 64px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--faint);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .lap-row:last-child { border-bottom: none; }
+  .lap-num { color: var(--muted); font-size: 10px; }
+  .lap-bar-wrap {
+    height: 3px;
+    background: var(--faint);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .lap-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+  .lap-row.best .lap-bar { background: var(--lap-best); }
+  .lap-row.worst .lap-bar { background: var(--lap-worst); }
+  .lap-total { color: var(--text); text-align: right; }
+  .lap-delta { color: var(--muted); font-size: 10px; text-align: right; }
+  .lap-row.best .lap-delta { color: var(--lap-best); }
+  .lap-row.worst .lap-delta { color: var(--lap-worst); }
+
+  /* footer padding */
+  .footer { height: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-label">⏱&nbsp; Stopwatch</span>
+  <div class="header-dot" id="hd"></div>
+</div>
+
+<div class="ring-wrap">
+  <svg width="210" height="210" viewBox="0 0 240 240">
+    <defs>
+      <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00ffe0"/>
+        <stop offset="100%" stop-color="#00a8ff"/>
+      </linearGradient>
+    </defs>
+    <circle class="ring-bg" cx="120" cy="120" r="108"/>
+    <circle class="ring-fill" id="arc" cx="120" cy="120" r="108"/>
+  </svg>
+  <div class="time-block">
+    <div class="time-main" id="t-main">00:00:00</div>
+    <div class="time-ms" id="t-ms">.000</div>
+    <div class="time-label">elapsed</div>
+  </div>
+</div>
+
+<div class="btns">
+  <button class="btn btn-start" id="btn-start">Start</button>
+  <button class="btn btn-sec" id="btn-lap">Lap</button>
+  <button class="btn btn-sec" id="btn-reset">Reset</button>
+</div>
+
+<div class="divider"></div>
+
+<div class="laps-header">
+  <span>Lap</span>
+  <span>Split</span>
+  <span>Total</span>
+  <span>+Delta</span>
+</div>
+
+<div class="laps-list" id="laps">
+  <div class="laps-empty">— no laps yet —</div>
+</div>
+
+<div class="footer"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
