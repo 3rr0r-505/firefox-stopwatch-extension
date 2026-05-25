@@ -11,8 +11,8 @@ const lapsEl   = document.getElementById('laps');
 
 // ── local tick state (popup only, for smooth display) ────
 let rafId      = null;
-let localBase  = 0;   // elapsed at the moment we started local tick
-let localStart = 0;   // Date.now() at that moment
+let localBase  = 0;
+let localStart = 0;
 let isRunning  = false;
 
 function getLiveElapsed() {
@@ -51,7 +51,7 @@ function setUIRunning(running) {
   }
 }
 
-// ── RAF loop (only active while popup is open & running) ──
+// ── RAF loop ──────────────────────────────────────────────
 
 function startLocalTick(elapsed) {
   localBase  = elapsed;
@@ -73,29 +73,62 @@ function stopLocalTick(elapsed) {
 
 // ── laps ──────────────────────────────────────────────────
 
+function makeLapRow(lap, num, isBest, isWorst, barW) {
+  const row = document.createElement('div');
+  row.className = 'lap-row' + (isBest ? ' best' : isWorst ? ' worst' : '');
+
+  const numEl = document.createElement('span');
+  numEl.className = 'lap-num';
+  numEl.textContent = '#' + num;
+
+  const barWrap = document.createElement('div');
+  barWrap.className = 'lap-bar-wrap';
+  const bar = document.createElement('div');
+  bar.className = 'lap-bar';
+  bar.style.width = barW + '%';
+  barWrap.appendChild(bar);
+
+  const totalEl = document.createElement('span');
+  totalEl.className = 'lap-total';
+  totalEl.textContent = fmt(lap.total);
+
+  const deltaEl = document.createElement('span');
+  deltaEl.className = 'lap-delta';
+  deltaEl.textContent = '+' + fmt(lap.delta);
+
+  row.appendChild(numEl);
+  row.appendChild(barWrap);
+  row.appendChild(totalEl);
+  row.appendChild(deltaEl);
+
+  return row;
+}
+
 function renderLaps(laps) {
+  lapsEl.textContent = ''; // clear safely
+
   if (!laps || laps.length === 0) {
-    lapsEl.innerHTML = '<div class="laps-empty">— no laps yet —</div>';
+    const empty = document.createElement('div');
+    empty.className = 'laps-empty';
+    empty.textContent = '— no laps yet —';
+    lapsEl.appendChild(empty);
     return;
   }
+
   const deltas = laps.map(l => l.delta);
   const minD   = Math.min(...deltas);
   const maxD   = Math.max(...deltas);
   const rangeD = maxD - minD || 1;
 
-  lapsEl.innerHTML = [...laps].reverse().map((lap, ri) => {
+  const fragment = document.createDocumentFragment();
+  [...laps].reverse().forEach((lap, ri) => {
     const num     = laps.length - ri;
     const isBest  = laps.length > 1 && lap.delta === minD;
     const isWorst = laps.length > 1 && lap.delta === maxD;
     const barW    = Math.round(((lap.delta - minD) / rangeD) * 100);
-    const cls     = isBest ? 'best' : isWorst ? 'worst' : '';
-    return `<div class="lap-row ${cls}">
-      <span class="lap-num">#${num}</span>
-      <div class="lap-bar-wrap"><div class="lap-bar" style="width:${barW}%"></div></div>
-      <span class="lap-total">${fmt(lap.total)}</span>
-      <span class="lap-delta">+${fmt(lap.delta)}</span>
-    </div>`;
-  }).join('');
+    fragment.appendChild(makeLapRow(lap, num, isBest, isWorst, barW));
+  });
+  lapsEl.appendChild(fragment);
 }
 
 // ── messaging ─────────────────────────────────────────────
@@ -119,11 +152,9 @@ btnStart.addEventListener('click', async () => {
 });
 
 btnLap.addEventListener('click', async () => {
-  // use live local elapsed — fixes the first-lap bug
   if (getLiveElapsed() > 0) {
     const r = await send('LAP');
     renderLaps(r.laps);
-    // keep local tick running, don't touch display
   }
 });
 

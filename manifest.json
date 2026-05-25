@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Stopwatch",
-  "version": "1.0.0",
+  "name": "Lapsr",
+  "version": "1.0.1",
   "description": "A clean stopwatch with lap tracking that keeps running in the background.",
   "icons": {
     "48": "icon-48.png",
@@ -10,7 +10,7 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": "icon-96.png",
-    "default_title": "Stopwatch"
+    "default_title": "Lapsr"
   },
   "background": {
     "scripts": ["background.js"],
@@ -19,7 +19,7 @@
   "permissions": [],
   "browser_specific_settings": {
     "gecko": {
-      "id": "stopwatch@5pyd3r",
+      "id": "stopwatch@5pyd3r.org",
       "data_collection_permissions": {
         "required": ["none"],
         "optional": []
