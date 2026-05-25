@@ -105,7 +105,9 @@ function makeLapRow(lap, num, isBest, isWorst, barW) {
 }
 
 function renderLaps(laps) {
-  lapsEl.textContent = ''; // clear safely
+  while (lapsEl.children.length > 1) {
+    lapsEl.removeChild(lapsEl.lastChild);
+  }
 
   if (!laps || laps.length === 0) {
     const empty = document.createElement('div');
