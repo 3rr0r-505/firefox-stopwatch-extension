@@ -1,0 +1,31 @@
+Lapsr — Changelog
+==================
+
+
+v1.0.3 (latest)
+--------------------
+- Fixed scrollbar positioning in lap list
+
+
+v1.0.2
+------
+- Fixed lap table column alignment
+- Fixed scrollbar overlapping +Delta column
+- Sticky header now inside scroll container
+
+
+v1.0.1
+------
+- Replaced innerHTML with DOM API in lap list renderer
+  for improved security
+
+
+v1.0.0
+------
+- Initial release
+- Start, pause, and reset
+- Lap tracking with delta times
+- Best and worst lap highlighted automatically
+- Timer runs in background while popup is closed
+- No storage, no network requests, no external dependencies
+- Fonts bundled locally (Share Tech Mono, Rajdhani)
